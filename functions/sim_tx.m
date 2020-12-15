@@ -26,7 +26,7 @@ function [tx_wf, data_f_mtx, data_msg, PHY] = sim_tx(mcs, payload_len, window_en
 % Create structure with PHY parameters
 [PHY, data_msg] = tx_phy_params(mcs, payload_len);
 
-disp(data_msg(1:10, :).');
+% disp(data_msg(1:10, :).');
 
 % Get STF waveform
 stf_wf = stf_tx(w_beta);
