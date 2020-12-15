@@ -42,13 +42,6 @@ idx_6  = (abs(sym_in) <= 4)  & (abs(sym_in) > 2);
 idx_7  = (abs(sym_in) <= 2);
 
 % Calculate LLRs (2nd soft-bit) using a different equation for each region
-% llr_out(2, idx_1)  = 4*(sym_in(idx_1) + 11);
-% llr_out(2, idx_2)  = 3*(sym_in(idx_2) + 10);
-% llr_out(2, idx_3)  = 2*(sym_in(idx_3) + 9);
-% llr_out(2, idx_4)  = 1*(sym_in(idx_4) + 8);
-% llr_out(2, idx_5)  = 2*(sym_in(idx_5) + 7);
-% llr_out(2, idx_6)  = 3*(sym_in(idx_6) + 6);
-% llr_out(2, idx_7)  = 4*(sym_in(idx_7) + 5);
 llr_out(2, idx_1) = -4*(abs(sym_in(idx_1)) - 11);
 llr_out(2, idx_2) = -3*(abs(sym_in(idx_2)) - 10);
 llr_out(2, idx_3) = -2*(abs(sym_in(idx_3)) - 9);
