@@ -1,4 +1,4 @@
-function [data_wf, data_f_mtx] = data_tx(PHY, pad_len, padding_out, w_beta)
+function [data_wf, data_f_mtx] = data_tx(PHY, pad_len, padding_out, w_beta, coding)
 %DATA_TX Transmitter processing of all DATA OFDM symbols
 %
 %   Author: Ioannis Sarris, u-blox
@@ -24,21 +24,29 @@ function [data_wf, data_f_mtx] = data_tx(PHY, pad_len, padding_out, w_beta)
 % Purpose: V2X baseband simulation model
 
 % Store this as a persistent variable to avoid reinitialization
-persistent bcc_obj
+persistent coder_obj
 
 % Needed for code generation
 coder.varsize('scrambler_out', [216 1], [1 0]);
 
 % Create or reset system object
-if isempty(bcc_obj)
-    bcc_obj = comm.ConvolutionalEncoder( ...
-        'TrellisStructure', poly2trellis(7, [133 171]), ...
-        'PuncturePatternSource', 'Property', ...
-        'PuncturePattern', [1; 1]);
-else
-    reset(bcc_obj);
+if strcmp(coding, 'bcc')
+				if isempty(coder_obj)
+								coder_obj = comm.ConvolutionalEncoder( ...
+												'TrellisStructure', poly2trellis(7, [133 171]), ...
+												'PuncturePatternSource', 'Property', ...
+												'PuncturePattern', [1; 1]);
+				else
+								reset(coder_obj);
+				end
+elseif strcmp(coding, 'ldpc')
+				if isempty(coder_obj)
+									coder_obj = comm.LDPCEncoder();
+				else
+									reset(coder_obj);
+					end
 end
-
+	
 % Initialize state of PN generator
 pn_state = flipud(PHY.pn_seq);
 
@@ -65,23 +73,28 @@ for i_sym = 0:PHY.n_sym - 1
     scrambler_out = (scrambler_out & padding_vec(idx0:idx1));
     
     % Process data through BCC encoder
-    bcc_out = step(bcc_obj, scrambler_out);
+    coder_out = coder_obj(scrambler_out);
     
     % Perform puncturing if needed
     switch PHY.r_num
         case 2
-            a1 = reshape(bcc_out, 4, []);
+            a1 = reshape(coder_out, 4, []);
             a2 = a1([1 2 3], :);
-            bcc_out = a2(:);
+            coder_out = a2(:);
             
         case 3
-            a1 = reshape(bcc_out, 6, []);
+            a1 = reshape(coder_out, 6, []);
             a2 = a1([1 2 3 6], :);
-            bcc_out = a2(:);
+            coder_out = a2(:);
+												
+								case 5
+											a1 = reshape(coder_out, 10, []);
+											a2 = a1([1 2 3 6 7 10], :);
+											coder_out = a2(:);
     end
     
     % Apply interleaving per OFDM symbol
-    interlvr_out = interleaver(bcc_out, PHY.n_bpscs, PHY.n_cbps);
+    interlvr_out = interleaver(coder_out, PHY.n_bpscs, PHY.n_cbps);
     
     % Initialize f-domain data symbol
     data_f = complex(zeros(64, 1));

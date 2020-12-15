@@ -1,4 +1,4 @@
-function ltf_wf = ltf_tx(w_beta)
+function ltf_wf = ltf_tx(w_beta, n_sc)
 %LTF_TX Generates LTF preamble
 %
 %   Author: Ioannis Sarris, u-blox

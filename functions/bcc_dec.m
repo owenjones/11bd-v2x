@@ -1,4 +1,4 @@
-function bits_out = bcc_dec(llr_in, r_num, bcc_init)
+function bits_out = bcc_dec(llr_in, r_num, coder_init, coding)
 %BCC_DEC Decodes BCC encoded LLR stream
 %
 %   Author: Ioannis Sarris, u-blox
@@ -24,22 +24,30 @@ function bits_out = bcc_dec(llr_in, r_num, bcc_init)
 % Purpose: V2X baseband simulation model
 
 % Store this as a persistent variable to avoid reinitialization
-persistent vit_dec
+persistent coder_obj
 
 % Needed for code generation
 coder.varsize('bits_out', [216 1], [1 0]);
 
 % Create or reset system object
-if isempty(vit_dec)
-    vit_dec = comm.ViterbiDecoder(...
-        'TrellisStructure', poly2trellis(7, [133 171]), ...
-        'InputFormat', 'Unquantized', ...
-        'TracebackDepth', 96, ...
-        'TerminationMethod', 'Continuous');
-elseif bcc_init
-    reset(vit_dec);
+if strcmp(coding, 'bcc')
+		if isempty(coder_obj)
+						coder_obj = comm.ViterbiDecoder(...
+										'TrellisStructure', poly2trellis(7, [133 171]), ...
+										'InputFormat', 'Unquantized', ...
+										'TracebackDepth', 96, ...
+										'TerminationMethod', 'Continuous');
+		elseif coder_init
+						reset(coder_obj);
+		end
+elseif strcmp(coding, 'ldpc')
+	if isempty(coder_obj)
+						coder_obj = comm.LDPCDecoder();
+		elseif coder_init
+						reset(coder_obj);
+		end
 end
-
+		
 % Select Viterbi decoder depuncturing pattern according to code-rate
 switch r_num
     case 2
@@ -48,6 +56,9 @@ switch r_num
     case 3
         punct_pat = logical([1 1 1 0 0 1]);
         f = 2*3/4;
+				case 5
+								punct_pat = logical([1 1 1 0 0 1 1 0 0 1]);
+								f = 2*5/6;
     otherwise
         punct_pat = true;
         f = 2*1/2;
@@ -64,6 +75,6 @@ llr_in_dep = zeros(round(llr_len*f/2)*2, 1);
 llr_in_dep(idx) = llr_in;
 
 % Viterbi decoder rate 1/2
-bits_out = step(vit_dec, llr_in_dep);
+bits_out = step(coder_obj, llr_in_dep);
 
 end

@@ -1,4 +1,4 @@
-function stf_wf = stf_tx(w_beta)
+function stf_wf = stf_tx(w_beta, n_sc)
 %STF_TX Generates STF preamble
 %
 %   Author: Ioannis Sarris, u-blox

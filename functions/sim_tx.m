@@ -1,4 +1,4 @@
-function [tx_wf, data_f_mtx, data_msg, PHY] = sim_tx(mcs, payload_len, window_en, w_beta)
+function [tx_wf, data_f_mtx, data_msg, PHY] = sim_tx(mcs, payload_len, window_en, w_beta, coding)
 %SIM_RX High-level transmitter function
 %
 %   Author: Ioannis Sarris, u-blox
@@ -26,6 +26,8 @@ function [tx_wf, data_f_mtx, data_msg, PHY] = sim_tx(mcs, payload_len, window_en
 % Create structure with PHY parameters
 [PHY, data_msg] = tx_phy_params(mcs, payload_len);
 
+disp(data_msg(1:10, :).');
+
 % Get STF waveform
 stf_wf = stf_tx(w_beta);
 
@@ -35,6 +37,8 @@ ltf_wf = ltf_tx(w_beta);
 % Get SIG waveform
 sig_wf = sig_tx(PHY, w_beta);
 
+
+
 % Calculate number of required pad bits
 pad_len = PHY.n_sym*PHY.n_dbps - (16 + 8*PHY.length + 6);
 
@@ -42,7 +46,7 @@ pad_len = PHY.n_sym*PHY.n_dbps - (16 + 8*PHY.length + 6);
 padding_out = [false(16, 1); data_msg; false(pad_len + 6, 1)];
 
 % Generate data waveform
-[data_wf, data_f_mtx] = data_tx(PHY, pad_len, padding_out, w_beta);
+[data_wf, data_f_mtx] = data_tx(PHY, pad_len, padding_out, w_beta, coding);
 
 % Concatenate output waveform
 tx_wf = [stf_wf; ltf_wf; sig_wf; data_wf];

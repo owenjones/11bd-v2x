@@ -1,4 +1,4 @@
-function descr_msg = data_rx(PHY, SIG_CFG, rx_wf, idx, h_est, data_f_mtx, t_depth, r_cfo)
+function descr_msg = data_rx(PHY, SIG_CFG, rx_wf, idx, h_est, data_f_mtx, t_depth, r_cfo, coding)
 %DATA_RX Receiver processing of all DATA OFDM symbols
 %
 %   Author: Ioannis Sarris, u-blox
@@ -78,17 +78,19 @@ for i_sym = 1:SIG_CFG.n_sym
     x_data = deinterleaver(llr_in, SIG_CFG.n_bpscs, SIG_CFG.n_cbps);
     
     % Store output binary data per OFDM symbol
-    data_out_vec(:, i_sym) = bcc_dec(x_data', SIG_CFG.r_num, (i_sym == 1));
+    data_out_vec(:, i_sym) = bcc_dec(x_data', SIG_CFG.r_num, (i_sym == 1), coding);
     
     % EVM for debugging
     evm_mtx(:, i_sym) = abs(data_f_mtx(PHY.data_idx, i_sym) - sym_out).^2;
 end
 
 % Last pass of Viterbi decoder
-bits_out = bcc_dec(zeros(96*2, 1), SIG_CFG.r_num, false);
+bits_out = bcc_dec(zeros(96*2, 1), SIG_CFG.r_num, false, coding);
 data_out = [data_out_vec(:); bits_out];
 
 % Descrambling
 descr_msg = descrambler_rx(logical(data_out(97:end)), true);
+
+% disp(descr_msg(10:19, :).');
 
 end

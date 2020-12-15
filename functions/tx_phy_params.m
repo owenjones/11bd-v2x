@@ -49,9 +49,9 @@ PHY.data_idx = [-26:-22 -20:-8 -6:-1 1:6 8:20 22:26].' + 33;
 PHY.n_sd = 48;
 
 % MCS tables for coding rate (numerator / denominator) and bits per modulation symbol
-rate_num = [1 3 1 3 1 3 2 3];
-rate_denom = [2 4 2 4 2 4 3 4];
-n_bpscs = [1 1 2 2 4 4 6 6];
+rate_num = [1 3 1 3 1 3 2 3 3 5];
+rate_denom = [2 4 2 4 2 4 3 4 4 6];
+n_bpscs = [1 1 2 2 4 4 6 6 8 8];
 
 % Find code rate numerator/denominator & bits per modulation symbol
 PHY.r_num   = rate_num(mcs + 1);

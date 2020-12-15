@@ -111,6 +111,10 @@ if (parity_bit == parity_check)
             SIG_CFG.mcs = 6;
         case 12
             SIG_CFG.mcs = 7;
+								case 4
+												SIG_CFG.mcs = 8;
+								case 2
+												SIG_CFG.mcs = 9;
         otherwise
             return
     end
@@ -122,9 +126,9 @@ else
 end
 
 % MCS table
-r_num_vec   = [1 3 1 3 1 3 2 3];
-r_denom_vec = [2 4 2 4 2 4 3 4];
-n_bpscs_vec = [1 1 2 2 4 4 6 6];
+r_num_vec   = [1 3 1 3 1 3 2 3 3 5];
+r_denom_vec = [2 4 2 4 2 4 3 4 4 6];
+n_bpscs_vec = [1 1 2 2 4 4 6 6 8 8];
 
 % Find code rate numerator/denominator & bits per modulation symbol
 SIG_CFG.r_num = r_num_vec(SIG_CFG.mcs + 1);

@@ -26,7 +26,7 @@
 %% Initialization
 clc
 clear all
-close all
+% close all
 
 addpath('./functions;./mex')
 
@@ -36,16 +36,18 @@ RandStream.setGlobalStream(rand_stream);
 
 %% Simulation Parameters
 % Simulation parameters
-SIM.mcs_vec         = 0:7;      % Scalar or vector containing MCS values (0...7)
-SIM.snr             = 0:.5:25;  % Scalar or vector containing SNR values (dB)
+SIM.mcs_vec         = 0:9;        % Scalar or vector containing MCS values (0...7)
+SIM.coding          = 'bcc';    % Coding Scheme - BCC or LDPC
+SIM.snr             = 0:.5:40;  % Scalar or vector containing SNR values (dB)
 SIM.ovs             = 1;        % Oversampling factor
-SIM.channel_model   = 0;        % Channel model (0: AWGN, 1-5: C2C models R-LOS, UA-LOS, C-NLOS, H-LOS and H-NLOS, 6-10: Enhanced C2C models R-LOS-ENH, UA-LOS-ENH, C-NLOS-ENH, H-LOS-ENH and H-NLOS-ENH)
+SIM.channel_model   = 6;        % Channel model (0: AWGN, 1-5: C2C models R-LOS, UA-LOS, C-NLOS, H-LOS and H-NLOS, 6-10: Enhanced C2C models R-LOS-ENH, UA-LOS-ENH, C-NLOS-ENH, H-LOS-ENH and H-NLOS-ENH)
 SIM.use_mex         = false;    % Use MEX functions to accelerate simulation
 SIM.n_iter          = 1000;     % Number of Monte-Carlo iterations
 SIM.max_error       = 100;      % Number of packet errors before moving to next SNR point
 SIM.min_error       = .005;     % Minimum PER target, beyond which, loop moves to next SNR point
 SIM.check_sp        = false;    % Plot Tx spectrum and check for compliance
 SIM.apply_cfo       = false;    % Apply CFO impairment on Tx and Rx
+SIM.n_subcarrier    = 1;        % Number of subcarriers (* 64)
 
 % Transmitter parameters
 TX.payload_len      = 300;      % PHY payload length (bytes)
@@ -94,9 +96,9 @@ for i_mcs = 1:length(SIM.mcs_vec)
             
             % Transmitter model (MEX or M)
             if SIM.use_mex
-                [tx_wf, data_f_mtx, data_msg, PHY] = sim_tx_mex(TX.mcs, TX.payload_len, TX.window_en, TX.w_beta);
+                [tx_wf, data_f_mtx, data_msg, PHY] = sim_tx_mex(TX.mcs, TX.payload_len, TX.window_en, TX.w_beta, SIM.coding);
             else
-                [tx_wf, data_f_mtx, data_msg, PHY] = sim_tx(TX.mcs, TX.payload_len, TX.window_en, TX.w_beta);
+                [tx_wf, data_f_mtx, data_msg, PHY] = sim_tx(TX.mcs, TX.payload_len, TX.window_en, TX.w_beta, SIM.coding);
             end
             
             % Add CFO error, assume [-5, 5] ppm per Tx/Rx device
@@ -140,9 +142,9 @@ for i_mcs = 1:length(SIM.mcs_vec)
             
             % Receiver model (MEX or M)
             if SIM.use_mex
-                err = sim_rx_mex(PHY, rx_wf, s0_len, data_f_mtx, RX.t_depth, RX.pdet_thold);
+                err = sim_rx_mex(PHY, rx_wf, s0_len, data_f_mtx, RX.t_depth, RX.pdet_thold, SIM.coding);
             else
-                err = sim_rx(PHY, rx_wf, s0_len, data_f_mtx, RX.t_depth, RX.pdet_thold);
+                err = sim_rx(PHY, rx_wf, s0_len, data_f_mtx, RX.t_depth, RX.pdet_thold, SIM.coding);
             end
             
             % Display debugging information
@@ -178,9 +180,9 @@ for i_mcs = 1:length(SIM.mcs_vec)
         end
     end
     
-    figure(SIM.channel_model + 1);
+				figure(2);
     
-    % Plot PER
+				% Plot PER
     subplot(1, 2, 1)
     semilogy(SIM.snr, avgPER, 'DisplayName', ['MCS' num2str(TX.mcs)]);
     drawnow; xlabel('SNR (dB)'); ylabel('PER');
